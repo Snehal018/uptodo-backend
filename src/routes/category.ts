@@ -9,4 +9,4 @@ categoryRoutes.get("/category", isAuth, getCategories);
 
 categoryRoutes.post("/category", isAuth, addCategoryValidation, postCategory);
 
-export { categoryRoutes };
+export default categoryRoutes;

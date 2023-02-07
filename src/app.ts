@@ -1,23 +1,23 @@
 import express from "express";
 import * as dotenv from "dotenv";
 import { env } from "process";
-import { MongoClient } from "mongodb";
 import userRoutes from "./routes/user";
 import bodyParser from "body-parser";
 import { ErrorType } from "./utils/types";
 import mongoose from "mongoose";
 import path from "path";
-import { categoryRoutes } from "./routes/category";
+import categoryRoutes from "./routes/category";
+import taskRoutes from "./routes/task";
 
 dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
-console.log("PATH CHECK=>", path.join(__dirname, "images"));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use(userRoutes);
 app.use(categoryRoutes);
+app.use(taskRoutes);
 
 app.use(
   (

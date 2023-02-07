@@ -11,6 +11,7 @@ import User from "../models/user";
 import bcrypt from "bcryptjs";
 import { AppStrings } from "../utils/strings";
 import { env } from "process";
+import Task from "../models/task";
 
 export const postSignup = async (
   req: express.Request,
@@ -42,7 +43,7 @@ export const postSignup = async (
 };
 
 export const postLogin = async (
-  req: express.Request,
+  req: any,
   res: express.Response,
   next: express.NextFunction
 ) => {
@@ -72,12 +73,24 @@ export const postLogin = async (
       { expiresIn: "24h" }
     );
 
+    const pendingTasks = await Task.find({
+      user: req.userId,
+      isDone: false,
+    }).countDocuments();
+
+    const completedTasks = await Task.find({
+      user: req.userId,
+      isDone: true,
+    }).countDocuments();
+
     res.status(200).json({
       authToken: token,
       userProfile: {
         _id: existingUser._id,
         username: existingUser.username,
         profileImage: existingUser.profileImage,
+        leftTasks: pendingTasks,
+        doneTasks: completedTasks,
       },
     });
   } catch (error) {
@@ -99,10 +112,22 @@ export const getUser = async (
       throw parseStatusError(AppStrings.userDoesNotExists, 404);
     }
 
+    const pendingTasks = await Task.find({
+      user: req.userId,
+      isDone: false,
+    }).countDocuments();
+
+    const completedTasks = await Task.find({
+      user: req.userId,
+      isDone: true,
+    }).countDocuments();
+
     res.status(200).json({
       username: user.username,
       _id: user._id,
       profileImage: user.profileImage,
+      leftTasks: pendingTasks,
+      doneTasks: completedTasks,
     });
   } catch (error) {
     next(error);
@@ -185,12 +210,24 @@ export const updateUser = async (
 
     await user.save();
 
+    const pendingTasks = await Task.find({
+      user: req.userId,
+      isDone: false,
+    }).countDocuments();
+
+    const completedTasks = await Task.find({
+      user: req.userId,
+      isDone: true,
+    }).countDocuments();
+
     res.status(200).json({
       message: "Profile Updated Successfully",
       data: {
         _id: user._id,
         username: user.username,
         profileImage: user.profileImage,
+        leftTasks: pendingTasks,
+        doneTasks: completedTasks,
       },
     });
   } catch (error: any) {

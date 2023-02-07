@@ -14,7 +14,7 @@ export const getCategories = async (
     const page = +req.query.page || 1;
 
     const categories = await Category.find({ user: userId })
-      .populate("user")
+      .populate("user", "_id username profileImage")
       .skip((page - 1) * ITEMS_PER_PAGE)
       .limit(ITEMS_PER_PAGE);
     const categoriesCount = await Category.countDocuments();
