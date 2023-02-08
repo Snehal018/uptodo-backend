@@ -8,10 +8,14 @@ import mongoose from "mongoose";
 import path from "path";
 import categoryRoutes from "./routes/category";
 import taskRoutes from "./routes/task";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+
+app.use(cors());
+
 app.use(bodyParser.json());
 app.use("/images", express.static(path.join(__dirname, "images")));
 
