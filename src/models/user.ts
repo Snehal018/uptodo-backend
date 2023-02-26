@@ -11,6 +11,8 @@ const userSchema = new Schema(
       required: true,
     },
     profileImage: String,
+    pendingTasksCount: Number,
+    completedTasksCount: Number,
   },
   { timestamps: true }
 );

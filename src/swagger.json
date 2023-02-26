@@ -1,0 +1,116 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "UpToDo API",
+    "description": "UpToDo APIs",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Snehal Dhameliya",
+      "email": "snehaldhameliya17@gmail.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/",
+      "description": "Local server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "get": {
+        "tags": ["User"],
+        "description": "Get todos",
+        "operationId": "getTodos",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Todos were obtained",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "User": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string" },
+                      "username": {
+                        "type": "string"
+                      },
+                      "profileImage": {
+                        "type": "string"
+                      },
+                      "leftTasks": { "type": "number" },
+                      "doneTasks": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "username": {
+            "type": "string"
+          },
+          "profileImage": {
+            "type": "string"
+          },
+          "leftTasks": { "type": "number" },
+          "doneTasks": { "type": "number" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "user": { "type": "User" }
+        }
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "time": { "type": "string" },
+          "priority": { "type": "number" },
+          "category": { "type": "Category | null" },
+          "isDone": { "type": "boolean" },
+          "user": { "type": "User" },
+          "subTasks": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "priority": { "type": "number" },
+              "time": { "type": "string" },
+              "isDone": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

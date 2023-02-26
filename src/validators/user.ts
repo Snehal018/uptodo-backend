@@ -10,11 +10,8 @@ export const signupValidation = [
     .isLength({ min: 6, max: 15 })
     .trim(),
   check("confirmPassword", AppStrings.invalidConfirmPassword)
-    .isString()
-    .notEmpty()
-    .isLength({ min: 6, max: 15 })
-    .custom((value, metaInfo) => {
-      if (value.toString() !== metaInfo.req.body.password.toString()) {
+    .custom((value, { req }) => {
+      if (value.toString() !== req.body.password.toString()) {
         throw parseStatusError(AppStrings.invalidConfirmPassword, 400);
       }
       return true;

@@ -9,6 +9,8 @@ import path from "path";
 import categoryRoutes from "./routes/category";
 import taskRoutes from "./routes/task";
 import cors from "cors";
+import { serve, setup } from "swagger-ui-express";
+const swaggerDocument = require("./swagger.json");
 
 dotenv.config();
 
@@ -17,6 +19,9 @@ const app = express();
 app.use(cors());
 
 app.use(bodyParser.json());
+
+app.use("/api-docs", serve, setup(swaggerDocument));
+
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use(userRoutes);
@@ -30,7 +35,9 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    res.status(error.statusCode ?? 500).send({ error: error.message });
+    res
+      .status(error.statusCode ?? 500)
+      .send({ error: error.message, status: error.statusCode });
   }
 );
 

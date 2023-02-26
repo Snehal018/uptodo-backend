@@ -32,4 +32,5 @@ export const AppStrings = {
 
   notAuthorized: "You're not authorized to perform this operation",
   noTaskFound: "No Task Found",
+  noUserFound: "No User Found",
 };

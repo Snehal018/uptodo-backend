@@ -4,6 +4,7 @@ import Task from "../models/task";
 import { AddTaskRequest } from "../utils/types/request/task";
 import { ITEMS_PER_PAGE, parsePaginationResponse } from "../utils/pagination";
 import { AppStrings } from "../utils/strings";
+import User from "../models/user";
 
 const getTasks = async (
   req: any,
@@ -77,6 +78,13 @@ const createTask = async (
 
     const result = await newTask.save();
 
+    const user = await User.findById(userId);
+
+    if (user) {
+      user.pendingTasksCount = (user?.pendingTasksCount ?? 0) + 1;
+      await user?.save();
+    }
+
     res
       .status(201)
       .json({ message: "Task Created Successfully", task: result });
@@ -93,16 +101,30 @@ const updateTask = async (
   validatorErrorsHandler(req);
   try {
     const { taskId } = req.params;
+    const { userId } = req;
 
     const { title, description, priority, time, category, subTasks, isDone } =
       req.body as AddTaskRequest;
-    const task = await Task.findOne({ _id: taskId });
+    const task = await Task.findById(taskId);
     if (!task) {
       throw parseStatusError(AppStrings.noTaskFound, 404);
     }
 
     if (task.user?.toString() !== req.userId?.toString()) {
       throw parseStatusError(AppStrings.notAuthorized, 401);
+    }
+
+    const user = await User.findById(userId);
+
+    if (user && isDone !== undefined && task.isDone !== isDone) {
+      if (isDone) {
+        user.pendingTasksCount = (user?.pendingTasksCount ?? 0) - 1;
+        user.completedTasksCount = (user?.completedTasksCount ?? 0) + 1;
+      } else {
+        user.pendingTasksCount = (user?.pendingTasksCount ?? 0) + 1;
+        user.completedTasksCount = (user?.completedTasksCount ?? 0) - 1;
+      }
+      await user?.save();
     }
 
     task.title = title ?? task.title;
@@ -136,7 +158,9 @@ const deleteTask = async (
 ) => {
   try {
     const { taskId } = req.params;
-    const task = await Task.findOne({ _id: taskId });
+    const { userId } = req;
+
+    const task = await Task.findById(taskId);
 
     if (!task) {
       throw parseStatusError(AppStrings.noTaskFound, 404);
@@ -144,6 +168,17 @@ const deleteTask = async (
 
     if (task.user?.toString() !== req.userId?.toString()) {
       throw parseStatusError(AppStrings.notAuthorized, 401);
+    }
+
+    const user = await User.findById(userId);
+
+    if (user) {
+      if (task.isDone) {
+        user.completedTasksCount = (user?.completedTasksCount ?? 0) - 1;
+      } else {
+        user.pendingTasksCount = (user?.pendingTasksCount ?? 0) - 1;
+      }
+      await user?.save();
     }
 
     await task.remove();
@@ -161,7 +196,7 @@ const getSingleTask = async (
 ) => {
   try {
     const { taskId } = req.params;
-    const task = await Task.findOne({ _id: taskId })
+    const task = await Task.findById(taskId)
       .populate("user", "_id username profileImage")
       .populate("category", "_id name color");
 
