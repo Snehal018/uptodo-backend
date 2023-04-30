@@ -181,7 +181,7 @@ const deleteTask = async (
       await user?.save();
     }
 
-    await task.remove();
+    await task.deleteOne();
 
     res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {

@@ -128,7 +128,7 @@ export const deleteUser = async (
     if (!user) {
       throw parseStatusError(AppStrings.noUserFound, 404);
     }
-    await user.remove();
+    await user.deleteOne();
 
     const profileImagePath = join(
       __dirname,
@@ -192,7 +192,7 @@ export const updateUser = async (
   next: express.NextFunction
 ) => {
   validatorErrorsHandler(req);
-
+  console.log("Req body check====>", req.body);
   try {
     const { userId, file } = req;
     const { username } = req.body as UpdateProfileRequest;
