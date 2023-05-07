@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/category";
 import taskRoutes from "./routes/task";
 import cors from "cors";
 import { serve, setup } from "swagger-ui-express";
+import authRoutes from "./routes/auth";
 const swaggerDocument = require("./swagger.json");
 
 dotenv.config();
@@ -24,9 +25,10 @@ app.use("/api-docs", serve, setup(swaggerDocument));
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-app.use(userRoutes);
-app.use(categoryRoutes);
-app.use(taskRoutes);
+app.use("api/v1/auth", authRoutes);
+app.use("api/v1/users", userRoutes);
+app.use("api/v1/categories", categoryRoutes);
+app.use("api/v1/tasks", taskRoutes);
 
 app.use(
   (

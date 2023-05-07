@@ -1,6 +1,3 @@
-import { ObjectId } from "mongodb";
-import { Schema } from "mongoose";
-
 export interface SubTaskType {
   title: string;
   description: string;
@@ -14,7 +11,7 @@ export interface AddTaskRequest {
   description: string;
   time: Date;
   priority: number;
-  category?: any;
+  category?: string;
   subTasks?: SubTaskType[];
   isDone?: boolean;
 }

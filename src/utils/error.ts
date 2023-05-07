@@ -1,9 +1,12 @@
 import { validationResult } from "express-validator";
 import { ErrorType } from "./types";
 import express from "express";
+import { AppStrings } from "./strings";
 
-export const parseStatusError = (errorString: string, statusCode?: number) => {
-  const error: ErrorType = new Error(errorString);
+export const parseStatusError = (errorString?: string, statusCode?: number) => {
+  const error: ErrorType = new Error(
+    errorString ?? AppStrings.somethingWentWrong
+  );
   error.statusCode = statusCode ?? 500;
   return error;
 };

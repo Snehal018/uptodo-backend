@@ -1,152 +1,46 @@
 import {
   ChangePasswordRequest,
-  LoginRequest,
-  SignupRequest,
   UpdateProfileRequest,
 } from "../utils/types/request/user";
-import express from "express";
+import { NextFunction, Response } from "express";
 import { parseStatusError, validatorErrorsHandler } from "../utils/error";
-import jwt from "jsonwebtoken";
-import User from "../models/user";
-import bcrypt from "bcryptjs";
 import { AppStrings } from "../utils/strings";
-import { env } from "process";
-import { unlink } from "fs";
-import { join } from "path";
-
-export const postSignup = async (
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  const { username, password } = req.body as SignupRequest;
-
-  try {
-    validatorErrorsHandler(req);
-
-    const existingUser = await User.findOne({ username: username });
-
-    if (existingUser) {
-      throw parseStatusError(AppStrings.usernameAlreadyInuse, 400);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new User({
-      username,
-      password: hashedPassword,
-      profileImage: null,
-      completedTasksCount: 0,
-      pendingTasksCount: 0,
-    });
-    await user.save();
-    res.status(201).json({ message: AppStrings.userCreationSuccess });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const postLogin = async (
-  req: any,
-  res: express.Response,
-  next: express.NextFunction
-) => {
-  const { username, password } = req.body as LoginRequest;
-
-  try {
-    validatorErrorsHandler(req);
-
-    const existingUser = await User.findOne({ username: username });
-    if (!existingUser) {
-      throw parseStatusError(AppStrings.usernameDoesNotExists, 404);
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      existingUser.password
-    );
-
-    if (!isPasswordValid) {
-      throw parseStatusError(AppStrings.incorrectPassword, 400);
-    }
-
-    const token = jwt.sign(
-      { userId: existingUser._id?.toString() },
-      env.JWT_SECRET_KEY!,
-      { expiresIn: "24h" }
-    );
-
-    res.status(200).json({
-      authToken: token,
-      userProfile: {
-        _id: existingUser._id,
-        username: existingUser.username,
-        profileImage: existingUser.profileImage,
-        leftTasks: existingUser.pendingTasksCount,
-        doneTasks: existingUser.completedTasksCount,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+import {
+  changePasswordService,
+  deleteUserService,
+  findUserByIdService,
+  updateUserService,
+} from "../services/user";
+import { parseUserProfileResponse } from "../utils/response/user";
+import { AppRequestType } from "../utils/types";
 
 export const getUser = async (
-  req: any,
-  res: express.Response,
-  next: express.NextFunction
+  req: AppRequestType,
+  res: Response,
+  next: NextFunction
 ) => {
+  const { userId } = req;
   try {
-    const { userId } = req;
-
-    const user = await User.findById(userId);
-
+    const user = await findUserByIdService(userId ?? "");
     if (!user) {
       throw parseStatusError(AppStrings.userDoesNotExists, 404);
     }
-
-    res.status(200).json({
-      username: user.username,
-      _id: user._id,
-      profileImage: user.profileImage,
-      leftTasks: user.pendingTasksCount,
-      doneTasks: user.completedTasksCount,
-    });
+    res.status(200).json(parseUserProfileResponse(user));
   } catch (error) {
     next(error);
   }
 };
 
 export const deleteUser = async (
-  req: any,
-  res: express.Response,
-  next: express.NextFunction
+  req: AppRequestType,
+  res: Response,
+  next: NextFunction
 ) => {
+  const { userId } = req;
   try {
-    const { userId } = req;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      throw parseStatusError(AppStrings.noUserFound, 404);
-    }
-    await user.deleteOne();
-
-    const profileImagePath = join(
-      __dirname,
-      "..",
-      "..",
-      user.profileImage?.toString() ?? ""
-    );
-
-    if (profileImagePath) {
-      unlink(profileImagePath, (err) => {
-        if (err) {
-          console.log("Failed to delete Profile Image", err);
-        }
-      });
-    }
-
+    await deleteUserService(userId ?? "");
     res.status(200).json({
-      message: "User Deleted Successfully",
+      message: AppStrings.userDeleteSuccess,
     });
   } catch (error) {
     next(error);
@@ -154,32 +48,24 @@ export const deleteUser = async (
 };
 
 export const postChangePassword = async (
-  req: any,
-  res: express.Response,
-  next: express.NextFunction
+  req: AppRequestType,
+  res: Response,
+  next: NextFunction
 ) => {
-  validatorErrorsHandler(req);
+  const { userId } = req;
+  const { oldPassword, newPassword } = req.body as ChangePasswordRequest;
 
   try {
-    const { userId } = req;
-    const { oldPassword, newPassword } = req.body as ChangePasswordRequest;
+    validatorErrorsHandler(req);
 
-    const user = await User.findById(userId);
-    if (!user) {
-      throw parseStatusError(AppStrings.userDoesNotExists, 404);
-    }
-
-    const isOldPasswordSame = await bcrypt.compare(oldPassword, user.password);
-    if (!isOldPasswordSame) {
-      throw parseStatusError(AppStrings.oldPasswordDoesNotMatch, 422);
-    }
-
-    const newHashedPassword = await bcrypt.hash(newPassword, 12);
-    user.password = newHashedPassword;
-    await user.save();
+    await changePasswordService({
+      userId: userId ?? "",
+      newPassword,
+      oldPassword,
+    });
 
     res.status(200).json({
-      message: "Password Updated Successfully",
+      message: AppStrings.passwordUpdateSuccess,
     });
   } catch (error: any) {
     next(error);
@@ -187,40 +73,24 @@ export const postChangePassword = async (
 };
 
 export const updateUser = async (
-  req: any,
-  res: express.Response,
-  next: express.NextFunction
+  req: AppRequestType,
+  res: Response,
+  next: NextFunction
 ) => {
-  validatorErrorsHandler(req);
-  console.log("Req body check====>", req.body);
+  const { userId, file } = req;
+  const { username } = req.body as UpdateProfileRequest;
+
   try {
-    const { userId, file } = req;
-    const { username } = req.body as UpdateProfileRequest;
+    validatorErrorsHandler(req);
 
-    const user = await User.findById(userId);
-    if (!user) {
-      throw parseStatusError(AppStrings.userDoesNotExists, 404);
-    }
-
-    if (file) {
-      user.profileImage = file.path;
-    }
-
-    if (username) {
-      user.username = username;
-    }
-
-    await user.save();
+    const user = await updateUserService(userId ?? "", {
+      imageFile: file,
+      username,
+    });
 
     res.status(200).json({
-      message: "Profile Updated Successfully",
-      data: {
-        _id: user._id,
-        username: user.username,
-        profileImage: user.profileImage,
-        leftTasks: user.pendingTasksCount,
-        doneTasks: user.completedTasksCount,
-      },
+      message: AppStrings.profileUpdateSuccess,
+      data: parseUserProfileResponse(user),
     });
   } catch (error: any) {
     next(error);

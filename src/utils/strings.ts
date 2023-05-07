@@ -15,6 +15,9 @@ export const AppStrings = {
   oldPasswordDoesNotMatch: "Old Password Does not match",
   incorrectPassword: "Incorrect Password",
   invalidProfileImage: "Invalid Profile Image Found",
+  userDeleteSuccess: "User Deleted Successfully",
+  passwordUpdateSuccess: "Password Updated Successfully",
+  profileUpdateSuccess: "Profile Updated Successfully",
 
   // Category APIs
 
@@ -29,6 +32,9 @@ export const AppStrings = {
   invalidTaskPriority: "Invalid Priority! Priority should always be a number",
   invalidTaskCategory: "Invalid Task Category",
   invalidTaskSubtasks: "Invalid Subtasks! It Should be an array of valid tasks",
+  taskCreateSuccess: "Task Created Successfully",
+  taskUpdateSuccess: "Task Updated Successfully",
+  taskDeleteSuccess: "Task deleted successfully",
 
   notAuthorized: "You're not authorized to perform this operation",
   noTaskFound: "No Task Found",

@@ -3,14 +3,10 @@ import {
   deleteUser,
   getUser,
   postChangePassword,
-  postLogin,
-  postSignup,
   updateUser,
 } from "../controllers/user";
 import {
   changePasswordValidation,
-  loginValidation,
-  signupValidation,
   updateProfileValidation,
 } from "../validators/user";
 import { isAuth } from "../middleware/auth";
@@ -28,10 +24,6 @@ const storage = multer.diskStorage({
 });
 
 const userRoutes = Router();
-
-userRoutes.post("/signup", signupValidation, postSignup);
-
-userRoutes.post("/login", loginValidation, postLogin);
 
 userRoutes.get("/user", isAuth, getUser);
 
