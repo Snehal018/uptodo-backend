@@ -25,9 +25,9 @@ const storage = multer.diskStorage({
 
 const userRoutes = Router();
 
-userRoutes.get("/user", isAuth, getUser);
+userRoutes.get("", isAuth, getUser);
 
-userRoutes.delete("/user", isAuth, deleteUser);
+userRoutes.delete("", isAuth, deleteUser);
 
 userRoutes.post(
   "/change-password",
@@ -37,7 +37,7 @@ userRoutes.post(
 );
 
 userRoutes.patch(
-  "/user",
+  "",
   isAuth,
   updateProfileValidation,
   multer({

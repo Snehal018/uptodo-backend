@@ -5,8 +5,8 @@ import { addCategoryValidation } from "../validators/category";
 
 const categoryRoutes = Router();
 
-categoryRoutes.get("/category", isAuth, getCategories);
+categoryRoutes.get("", isAuth, getCategories);
 
-categoryRoutes.post("/category", isAuth, addCategoryValidation, postCategory);
+categoryRoutes.post("", isAuth, addCategoryValidation, postCategory);
 
 export default categoryRoutes;

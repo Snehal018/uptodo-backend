@@ -25,10 +25,10 @@ app.use("/api-docs", serve, setup(swaggerDocument));
 
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-app.use("api/v1/auth", authRoutes);
-app.use("api/v1/users", userRoutes);
-app.use("api/v1/categories", categoryRoutes);
-app.use("api/v1/tasks", taskRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/tasks", taskRoutes);
 
 app.use(
   (

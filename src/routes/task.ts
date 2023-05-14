@@ -11,14 +11,14 @@ import { addTaskValidation, updateTaskValidation } from "../validators/task";
 
 const taskRoutes = Router();
 
-taskRoutes.post("/task", isAuth, addTaskValidation, createTask);
+taskRoutes.post("", isAuth, addTaskValidation, createTask);
 
-taskRoutes.get("/task", isAuth, getTasks);
+taskRoutes.get("", isAuth, getTasks);
 
-taskRoutes.get("/task/:taskId", isAuth, getSingleTask);
+taskRoutes.get("/:taskId", isAuth, getSingleTask);
 
-taskRoutes.patch("/task/:taskId", isAuth, updateTaskValidation, updateTask);
+taskRoutes.patch("/:taskId", isAuth, updateTaskValidation, updateTask);
 
-taskRoutes.delete("/task/:taskId", isAuth, deleteTask);
+taskRoutes.delete("/:taskId", isAuth, deleteTask);
 
 export default taskRoutes;
