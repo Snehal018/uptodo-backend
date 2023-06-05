@@ -19,10 +19,7 @@ const taskSchema = new Schema({
     type: [
       {
         title: { type: String, required: true },
-        description: {
-          type: String,
-          required: true,
-        },
+        description: { type: String },
         time: {
           type: Date,
           required: true,

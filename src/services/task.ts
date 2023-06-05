@@ -1,7 +1,7 @@
 import { parseStatusError } from "../utils/error";
 import { ITEMS_PER_PAGE } from "../utils/pagination";
 import Task from "../models/task";
-import { AddTaskRequest } from "../utils/types/request/task";
+import { AddTaskRequest, UpdateTaskRequest } from "../utils/types/request/task";
 import { findUserByIdService } from "./user";
 import { AppStrings } from "../utils/strings";
 import { Types } from "mongoose";
@@ -30,6 +30,17 @@ const getPaginatedTasksService = async (filter: object = {}, page = 1) => {
   }
 };
 
+const getAllTasksService = async (filter: object = {}) => {
+  try {
+    const tasks = await Task.find(filter)
+      .populate("user", "_id username profileImage")
+      .populate("category", "_id name color");
+    return tasks;
+  } catch (error) {
+    throw parseStatusError();
+  }
+};
+
 const getTasksCountService = async (filter: object = {}) => {
   try {
     return await Task.countDocuments(filter);
@@ -45,15 +56,25 @@ const createTaskService = async (
   try {
     const { title, description, time, priority, subTasks, category } =
       createTaskData;
+
+    const taskDefaultTime = new Date(Date.now());
+
     const newTask = new Task({
       title,
       description: description ?? "",
-      time: time ? new Date(time) : new Date(Date.now()),
+      time: time ? new Date(time) : taskDefaultTime,
       priority: priority ?? 4,
       subTasks: subTasks
         ? subTasks.map((i) => {
             return {
-              ...i,
+              title: i.title ?? "",
+              description: i.description ?? "",
+              time: i.time
+                ? new Date(i?.time)
+                : time
+                ? new Date(time)
+                : taskDefaultTime,
+              priority: 4,
               isDone: false,
             };
           })
@@ -72,13 +93,13 @@ const createTaskService = async (
     }
 
     return createdTask;
-  } catch (error) {
-    throw parseStatusError();
+  } catch (error: any) {
+    throw parseStatusError(error.message);
   }
 };
 
 const updateTaskService = async (
-  updateTaskData: AddTaskRequest,
+  updateTaskData: UpdateTaskRequest,
   userId: string,
   taskId: string
 ) => {
@@ -113,14 +134,49 @@ const updateTaskService = async (
     task.priority = priority ?? task.priority;
     task.time = time ? new Date(time) : task.time;
     task.category = new Types.ObjectId(category) ?? task.category;
-    task.subTasks = subTasks
-      ? subTasks.map((i) => {
-          return {
-            ...i,
-            isDone: i?.isDone ?? false,
-          };
-        })
-      : [];
+
+    if (subTasks) {
+      let newSubTasksList = [...task.subTasks];
+
+      // Add New Sub-Task
+      if (subTasks.newSubTask && subTasks.newSubTask.title) {
+        const newSubTaskData = subTasks.newSubTask;
+        newSubTasksList.push({
+          title: subTasks.newSubTask.title,
+          time: newSubTaskData.time ? new Date(newSubTaskData.time) : task.time,
+          priority: newSubTaskData.priority ?? 4,
+          description: newSubTaskData.description ?? "",
+          isDone: false,
+        });
+      }
+
+      // Delete Sub-Task
+      if (subTasks.removeSubTask) {
+        newSubTasksList = newSubTasksList.filter(
+          (subTask: any) => subTask?._id?.toString() !== subTasks.removeSubTask
+        );
+      }
+
+      // Update Sub-Task
+      if (subTasks.updateSubTask?.taskId && subTasks.updateSubTask?.data) {
+        newSubTasksList = newSubTasksList.map((subTask: any) => {
+          if (subTask?._id?.toString() === subTasks.updateSubTask?.taskId) {
+            const updateData = subTasks.updateSubTask?.data;
+            return {
+              title: updateData?.title ?? subTask.title,
+              time: updateData?.time ? new Date(updateData.time) : subTask.time,
+              priority: updateData?.priority ?? subTask.priority,
+              description: updateData?.description ?? subTask.description,
+              isDone: updateData?.isDone ?? subTask.isDone,
+            };
+          } else {
+            return subTask;
+          }
+        });
+      }
+
+      task.subTasks = newSubTasksList;
+    }
     task.isDone = isDone ?? task?.isDone;
 
     return await task.save();
@@ -161,4 +217,5 @@ export {
   updateTaskService,
   deleteTaskService,
   findTaskByIdService,
+  getAllTasksService,
 };

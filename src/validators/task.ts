@@ -22,7 +22,7 @@ const updateTaskValidation = [
   check("time", AppStrings.invalidTaskTime).isString().optional(),
   check("priority", AppStrings.invalidTaskPriority).isNumeric().optional(),
   check("category", AppStrings.invalidTaskCategory).isAlphanumeric().optional(),
-  check("subtasks", AppStrings.invalidTaskSubtasks).isArray().optional(),
+  check("subtasks", AppStrings.invalidTaskSubtasks).isObject().optional(),
 ];
 
 export { addTaskValidation, updateTaskValidation };

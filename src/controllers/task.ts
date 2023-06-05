@@ -1,12 +1,13 @@
 import { NextFunction, Response } from "express";
 import { parseStatusError, validatorErrorsHandler } from "../utils/error";
-import { AddTaskRequest } from "../utils/types/request/task";
+import { AddTaskRequest, UpdateTaskRequest } from "../utils/types/request/task";
 import { parsePaginationResponse } from "../utils/pagination";
 import { AppStrings } from "../utils/strings";
 import {
   createTaskService,
   deleteTaskService,
   findTaskByIdService,
+  getAllTasksService,
   getPaginatedTasksService,
   getTasksCountService,
   updateTaskService,
@@ -23,6 +24,7 @@ const getTasks = async (
   const isDone = req.query.isDone;
   const date = req.query.date;
   const searchRegex = search ?? ".*";
+  const isGetAllData = !!req.query?.allData;
 
   const [year, month, day] = !!(date && typeof date === "string")
     ? date.split("-")
@@ -41,8 +43,19 @@ const getTasks = async (
   };
   try {
     const totalTasksCount = await getTasksCountService(filters);
-    const tasks = await getPaginatedTasksService(filters, page);
-    res.status(200).json(parsePaginationResponse(tasks, page, totalTasksCount));
+    let tasks = [];
+    let response = {};
+    if (isGetAllData) {
+      tasks = await getAllTasksService(filters);
+      response = {
+        data: tasks,
+        count: totalTasksCount,
+      };
+    } else {
+      tasks = await getPaginatedTasksService(filters, page);
+      response = parsePaginationResponse(tasks, page, totalTasksCount);
+    }
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -78,7 +91,7 @@ const updateTask = async (
   try {
     validatorErrorsHandler(req);
     const result = await updateTaskService(
-      req.body as AddTaskRequest,
+      req.body as UpdateTaskRequest,
       userId ?? "",
       taskId ?? ""
     );
@@ -116,10 +129,10 @@ const getSingleTask = async (
     if (!task) {
       throw parseStatusError(AppStrings.noTaskFound, 404);
     }
-    if (task.user?.toString() !== req.userId?.toString()) {
+    if (task.user?._id.toString() !== req.userId?.toString()) {
       throw parseStatusError(AppStrings.notAuthorized, 401);
     }
-    res.status(200).json({ date: task });
+    res.status(200).json(task);
   } catch (error) {
     next(error);
   }
