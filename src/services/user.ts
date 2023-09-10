@@ -4,7 +4,6 @@ import { parseStatusError } from "../utils/error";
 import { AppStrings } from "../utils/strings";
 import { unlink } from "fs";
 import { compareHashService, hashStringService } from "./auth";
-import { Types } from "mongoose";
 
 const findOneUserService = async (filter: object = {}) => {
   try {

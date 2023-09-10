@@ -32,7 +32,10 @@ const getTasks = async (
 
   const filters = {
     user: req.userId,
-    title: { $regex: searchRegex, $options: "i" },
+    $or: [
+      { title: { $regex: searchRegex, $options: "i" } },
+      { description: { $regex: searchRegex, $options: "i" } },
+    ],
     ...(isDone && { isDone: isDone }),
     ...(date && {
       time: {

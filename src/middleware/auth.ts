@@ -36,6 +36,6 @@ export const isAuth = (
 
     next();
   } catch (error) {
-    throw parseStatusError("Failed to validate the access token", 401);
+    throw parseStatusError("Not Autorized", 401);
   }
 };
